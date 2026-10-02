@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bank Soal Dinamis - Simulasi Ujian Dinas & UPKP BKN (100 Soal Acak)</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #2563eb;
+      --primary-dark: #0f172a;
+      --accent: #f59e0b;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: white;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-title p {
+      font-size: 0.85rem;
+      opacity: 0.88;
+      margin-top: 3px;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stat-badge {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(6px);
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .timer-badge {
+      background: #dc2626;
+      color: white;
+      padding: 7px 15px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 1.05rem;
+      box-shadow: 0 2px 8px rgba(220,38,38,0.35);
+    }
+
+    .btn-reload-header {
+      background: #f59e0b;
+      color: #78350f;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+
+    .btn-reload-header:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1fr 330px;
+      gap: 24px;
+    }
+
+    @media (max-width: 920px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Filter Tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      background: var(--bg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .filter-btn:hover:not(.active) {
+      background: #e2e8f0;
+    }
+
+    /* Question Cards */
+    .question-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .question-card.answered {
+      border-left: 5px solid var(--primary-light);
+    }
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .q-number {
+      font-weight: 700;
+      font-size: 0.96rem;
+      color: var(--primary);
+    }
+
+    .q-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .badge-twk { background: #fee2e2; color: #b91c1c; }
+    .badge-tkt { background: #fef3c7; color: #b45309; }
+    .badge-tsi { background: #e0e7ff; color: #4338ca; }
+    .badge-tkp { background: #dcfce7; color: #15803d; }
+
+    .question-text {
+      font-size: 1.02rem;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #ffffff;
+      font-size: 0.94rem;
+    }
+
+    .option-label:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .option-label input[type="radio"] {
+      margin-top: 4px;
+      accent-color: var(--primary-light);
+      cursor: pointer;
+    }
+
+    .option-label.selected {
+      background: #eff6ff;
+      border-color: var(--primary-light);
+      font-weight: 500;
+    }
+
+    .option-label.correct {
+      background: #dcfce7 !important;
+      border-color: #22c55e !important;
+      color: #166534 !important;
+      font-weight: 600;
+    }
+
+    .option-label.wrong {
+      background: #fee2e2 !important;
+      border-color: #ef4444 !important;
+      color: #991b1b !important;
+    }
+
+    .explanation-box {
+      margin-top: 15px;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border-left: 4px solid var(--primary);
+      border-radius: 4px;
+      font-size: 0.88rem;
+      display: none;
+      line-height: 1.55;
+    }
+
+    .explanation-box.show {
+      display: block;
+    }
+
+    /* Sidebar Navigation Palette */
+    .sidebar {
+      position: sticky;
+      top: 95px;
+      height: fit-content;
+    }
+
+    .palette-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    .palette-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 18px;
+    }
+
+    .palette-btn {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .palette-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .palette-btn.answered {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .palette-btn.correct {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .palette-btn.wrong {
+      background: var(--danger);
+      color: white;
+      border-color: var(--danger);
+    }
+
+    .action-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.98rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.28);
+      transition: opacity 0.2s;
+    }
+
+    .action-btn:hover {
+      opacity: 0.95;
+    }
+
+    /* Score Modal & Summary */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: white;
+      max-width: 650px;
+      width: 100%;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .score-circle {
+      width: 115px;
+      height: 115px;
+      border-radius: 50%;
+      margin: 14px auto;
+      background: #eff6ff;
+      border: 5px solid var(--primary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-circle .score-val {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .score-circle .score-total {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .score-breakdown-table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .score-breakdown-table th, .score-breakdown-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .score-breakdown-table th {
+      background: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      padding: 12px;
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      flex: 1;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <div class="header-title">
+        <h1><span>🎯</span> Bank Soal Dinamis Ujian Dinas & UPKP</h1>
+        <p>Distribusi Acak Dinamis: TWK (30), TKT (25), TSI (30), TKP (15) = Total 100 Soal</p>
+      </div>
+      <div class="header-stats">
+        <button class="btn-reload-header" onclick="generateNewExam()" title="Buat paket soal baru dari bank soal">
+          <span>🔄</span> Paket Soal Baru
+        </button>
+        <div class="stat-badge" id="answeredCount">Terjawab: 0 / 100</div>
+        <div class="timer-badge" id="timer">⏳ 90:00</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <main>
+      <!-- Filter Category Tabs -->
+      <div class="filter-tabs">
+        <button class="filter-btn active" onclick="filterCategory('ALL')">Semua Soal (100)</button>
+        <button class="filter-btn" onclick="filterCategory('TWK')">TWK (30)</button>
+        <button class="filter-btn" onclick="filterCategory('TKT')">TKT (25)</button>
+        <button class="filter-btn" onclick="filterCategory('TSI')">TSI (30)</button>
+        <button class="filter-btn" onclick="filterCategory('TKP')">TKP (15)</button>
+      </div>
+
+      <!-- Question List -->
+      <div id="questionsWrapper"></div>
+    </main>
+
+    <!-- Sidebar Navigation Palette -->
+    <aside class="sidebar">
+      <div class="palette-card">
+        <div class="palette-title">
+          <span>Palet Nomor Soal</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" id="paletteRange">1 - 100</span>
+        </div>
+        <div class="palette-grid" id="paletteGrid"></div>
+        <button class="action-btn" onclick="submitExam()">Selesai & Hitung Skor</button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Score Modal -->
+  <div class="modal-overlay" id="scoreModal">
+    <div class="modal-card">
+      <h2>Hasil Simulasi Ujian</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Ujian Dinas / UPKP Aparatur Sipil Negara</p>
+      
+      <div class="score-circle">
+        <span class="score-val" id="finalScore">0</span>
+        <span class="score-total">/ 100</span>
+      </div>
+
+      <div id="passingStatus" style="font-weight: 700; font-size: 1.05rem; margin-bottom: 8px;"></div>
+
+      <table class="score-breakdown-table">
+        <thead>
+          <tr>
+            <th>Kategori Soal</th>
+            <th>Kebutuhan</th>
+            <th>Jawaban Benar</th>
+            <th>Persentase</th>
+          </tr>
+        </thead>
+        <tbody id="breakdownBody">
+        </tbody>
+      </table>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModalAndReview()">Lihat Pembahasan Lengkap</button>
+        <button class="btn-primary" onclick="generateNewExam()">Mulai Paket Baru 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Bank Soal Induk (Pools)
+    const QUESTION_BANK = {"TWK": [{"question": "Kedudukan Pancasila sebagai sumber dari segala sumber hukum di Indonesia bermakna bahwa...", "options": ["Semua peraturan perundang-undangan tidak boleh bertentangan dengan nilai Pancasila", "Pancasila hanya mengikat lembaga eksekutif", "Hukum adat berkedudukan lebih tinggi dari Pancasila", "Pancasila dapat diubah melalui ketetapan MPR tanpa batasan", "Pancasila hanya berlaku dalam tata peradilan pidana"], "answer": 0, "explanation": "Pancasila sebagai sumber hukum tertinggi mewajibkan seluruh regulasi di bawahnya selaras dengan nilai Pancasila."}, {"question": "Jumlah helai bulu pada leher burung Garuda Pancasila melambangkan...", "options": ["Tahun kemerdekaan 1945 (angka 45)", "Bulan kemerdekaan Agustus (angka 8)", "Tanggal proklamasi (angka 17)", "Abad keemasan Nusantara", "Jumlah pasal UUD 1945"], "answer": 0, "explanation": "Bulu leher berjumlah 45 helai melambangkan tahun 1945."}, {"question": "Jumlah helai bulu pada masing-masing sayap Garuda Pancasila adalah...", "options": ["17 helai", "8 helai", "19 helai", "45 helai", "10 helai"], "answer": 0, "explanation": "Bulu sayap berjumlah 17 helai melambangkan tanggal 17 Agustus."}, {"question": "Bulu pada pangkal ekor burung Garuda Pancasila berjumlah...", "options": ["19 helai", "45 helai", "8 helai", "17 helai", "5 helai"], "answer": 0, "explanation": "Bulu pangkal ekor berjumlah 19 helai, bersama bulu leher (45) menunjukkan tahun 1945."}, {"question": "Ekor burung Garuda Pancasila memiliki jumlah bulu sebanyak...", "options": ["8 helai", "17 helai", "19 helai", "45 helai", "10 helai"], "answer": 0, "explanation": "8 helai bulu ekor melambangkan bulan ke-8 (Agustus)."}, {"question": "Warna keemasan pada tubuh burung Garuda melambangkan...", "options": ["Keagungan dan kejayaan bangsa", "Keberanian melawan penjajah", "Kesuburan alam semesta", "Keadilan sosial", "Kekuatan militer"], "answer": 0, "explanation": "Warna emas melambangkan keagungan dan kejayaan peradaban bangsa."}, {"question": "Perisai yang dikalungkan pada dada Garuda Pancasila memiliki makna filosofis sebagai...", "options": ["Simbol pertahanan, perjuangan, dan perlindungan diri", "Senjata untuk menaklukkan musuh", "Lambang kesepakatan raja-raja kuno", "Bentuk kemakmuran ekonomi", "Simbol kekuasaan kepala negara"], "answer": 0, "explanation": "Perisai melambangkan pertahanan diri dan perjuangan mencapai cita-cita nasional."}, {"question": "Komposisi butir-butir pengamalan pada Sila Pertama (Ketuhanan Yang Maha Esa) berjumlah...", "options": ["7 butir", "10 butir", "11 butir", "8 butir", "12 butir"], "answer": 0, "explanation": "Sila I terdiri atas 7 butir pengamalan yang berfokus pada ketakwaan dan toleransi beragama."}, {"question": "Jumlah butir pengamalan yang terdapat pada Sila Kedua (Kemanusiaan yang Adil dan Beradab) adalah...", "options": ["10 butir", "7 butir", "11 butir", "9 butir", "8 butir"], "answer": 0, "explanation": "Sila II memuat 10 butir pengamalan terkait hak asasi, kesetaraan derajat, dan perlakuan adil."}, {"question": "Sila Ketiga (Persatuan Indonesia) dalam rumusan 45 butir Pancasila memuat...", "options": ["7 butir", "10 butir", "11 butir", "5 butir", "9 butir"], "answer": 0, "explanation": "Sila III memuat 7 butir pengamalan terkait persatuan bangsa dan cinta tanah air."}, {"question": "Prinsip kerakyatan yang dipimpin oleh hikmat kebijaksanaan dalam permusyawaratan/perwakilan (Sila IV) memuat butir pengamalan sebanyak...", "options": ["10 butir", "7 butir", "11 butir", "8 butir", "6 butir"], "answer": 0, "explanation": "Sila IV memuat 10 butir pengamalan terkait demokrasi musyawarah mufakat."}, {"question": "Sila Kelima (Keadilan Sosial bagi Seluruh Rakyat Indonesia) memiliki butir pengamalan terbanyak, yaitu berjumlah...", "options": ["11 butir", "10 butir", "7 butir", "8 butir", "12 butir"], "answer": 0, "explanation": "Sila V terdiri dari 11 butir pengamalan mengenai keadilan, kerja keras, dan gotong royong."}, {"question": "Fungsi Pancasila sebagai 'Pandangan Hidup Bangsa' (Way of Life) berarti...", "options": ["Pancasila menjadi petunjuk arah dan pedoman bersikap dalam kehidupan sehari-hari", "Pancasila hanya mengikat pejabat negara ketika berpidato", "Pancasila sekadar simbol formal dalam upacara kenegaraan", "Pancasila menggantikan ajaran kitab suci setiap agama", "Pancasila hanya berlaku dalam urusan hubungan luar negeri"], "answer": 0, "explanation": "Pancasila sebagai pandangan hidup menjadi pedoman tingkah laku bermasyarakat dan berbangsa."}, {"question": "Semboyan Bhinneka Tunggal Ika dipetik dari karya sastra klasik Kakawin Sutasoma yang digubah oleh...", "options": ["Mpu Tantular", "Mpu Prapanca", "Mpu Gandring", "Mpu Sedah", "Mpu Panuluh"], "answer": 0, "explanation": "Mpu Tantular menggubah frasa Bhinneka Tunggal Ika Tan Hana Dharma Mangrwa pada era Majapahit."}, {"question": "Sistematika UUD 1945 sebelum dilakukan amandemen terdiri atas...", "options": ["Pembukaan, Batang Tubuh (16 Bab, 37 Pasal, 65 Ayat), dan Penjelasan Resmi", "Pembukaan dan Batang Tubuh 73 Pasal tanpa penjelasan", "Mukadimah, Batang Tubuh, dan Lampiran Piagam Jakarta", "Pembukaan, 20 Bab, dan 194 Ayat", "Batang Tubuh dan Penjelasan tanpa Pembukaan"], "answer": 0, "explanation": "Naskah asli sebelum amandemen terdiri atas Pembukaan, Batang Tubuh (16 Bab, 37 Pasal, 65 Ayat, 4 Aturan Peralihan, 2 Aturan Tambahan), serta Penjelasan Resmi."}, {"question": "Pasca empat tahap amandemen (1999-2002), struktur naskah UUD 1945 terdiri atas...", "options": ["Pembukaan dan Batang Tubuh (16 Bab, 37 Pasal, 194 Ayat, 3 Aturan Peralihan, 2 Aturan Tambahan)", "Pembukaan, Batang Tubuh, dan Penjelasan Resmi yang diperluas", "Pembukaan dan Batang Tubuh (21 Bab, 73 Pasal, 170 Ayat)", "Mukadimah dan 45 Pasal Amandemen", "Pembukaan, 16 Bab, dan 65 Ayat"], "answer": 0, "explanation": "Setelah amandemen, bagian Penjelasan dihapus dan dilebur ke Batang Tubuh menjadi 194 ayat."}, {"question": "Lembaga tinggi negara yang secara resmi dihapuskan kewenangannya dalam amandemen UUD 1945 adalah...", "options": ["Dewan Pertimbangan Agung (DPA)", "Badan Pemeriksa Keuangan (BPK)", "Mahkamah Agung (MA)", "Majelis Permusyawaratan Rakyat (MPR)", "Komisi Yudisial (KY)"], "answer": 0, "explanation": "DPA dihapuskan pasca-amandemen dan fungsinya digantikan dewan pertimbangan bentukan Presiden."}, {"question": "Jaminan perlindungan Hak Asasi Manusia (HAM) dalam UUD 1945 pasca-amandemen dikelompokkan secara terinci dalam...", "options": ["Bab XA (Pasal 28A s.d. 28J)", "Bab XII (Pasal 30)", "Bab XIII (Pasal 31 s.d. 32)", "Bab XIV (Pasal 33 s.d. 34)", "Bab IX (Pasal 24 s.d. 25)"], "answer": 0, "explanation": "Bab XA memuat 10 pasal HAM dari 28A hingga 28J."}, {"question": "Sistem pertahanan dan keamanan rakyat semesta (Sishankamrata) ditegaskan dalam UUD 1945 pasal...", "options": ["Pasal 30 Bab XII", "Pasal 27 Bab X", "Pasal 31 Bab XIII", "Pasal 33 Bab XIV", "Pasal 29 Bab XI"], "answer": 0, "explanation": "Pasal 30 Bab XII mengatur kewajiban serta sistem pertahanan dan keamanan negara."}, {"question": "Ketentuan alokasi anggaran pendidikan sekurang-kurangnya 20% dari APBN dan APBD diatur dalam UUD 1945 pasal...", "options": ["Pasal 31 Bab XIII", "Pasal 32 Bab XIII", "Pasal 33 Bab XIV", "Pasal 34 Bab XIV", "Pasal 28C Bab XA"], "answer": 0, "explanation": "Pasal 31 UUD 1945 mewajibkan alokasi anggaran pendidikan minimal 20%."}, {"question": "Pasal 33 UUD 1945 menegaskan bahwa cabang-cabang produksi yang penting bagi negara dan menguasai hajat hidup orang banyak...", "options": ["Dikuasai oleh negara untuk kemakmuran rakyat", "Diserahkan sepenuhnya kepada mekanisme pasar bebas", "Dikelola pihak swasta asing tanpa pengawasan", "Dimonopoli oleh serikat pekerja", "Dijual kepada investor swasta tertinggi"], "answer": 0, "explanation": "Pasal 33 ayat (2) mengamanatkan cabang produksi penting dikuasai negara untuk sebesar-besar kemakmuran rakyat."}, {"question": "Kekuasaan kehakiman di Indonesia pasca-amandemen dijalankan oleh lembaga yudikatif yang merdeka, yaitu...", "options": ["Mahkamah Agung (MA) dan Mahkamah Konstitusi (MK) serta diawasi Komisi Yudisial (KY)", "Hanya Mahkamah Agung bersama Kementerian Kehakiman", "MPR dibantu oleh Kejaksaan Agung", "DPR bersama Mahkamah Militer", "Presiden dan Dewan Pertimbangan"], "answer": 0, "explanation": "MA dan MK memegang kekuasaan kehakiman, sedangkan integritas hakim diawasi oleh KY."}, {"question": "Lembaga eksaminatif independen yang bertugas memeriksa pengelolaan dan tanggung jawab keuangan negara adalah...", "options": ["Badan Pemeriksa Keuangan (BPK)", "Badan Pengawasan Keuangan dan Pembangunan (BPKP)", "Komisi Yudisial (KY)", "Kementerian Keuangan", "Otoritas Jasa Keuangan (OJK)"], "answer": 0, "explanation": "Pasal 23E UUD 1945 menetapkan BPK sebagai lembaga auditif independen."}, {"question": "Wewenang untuk melantik serta memberhentikan Presiden dan/atau Wakil Presiden menurut UUD 1945 berada pada...", "options": ["Majelis Permusyawaratan Rakyat (MPR)", "Dewan Perwakilan Rakyat (DPR)", "Mahkamah Konstitusi (MK)", "Mahkamah Agung (MA)", "Komisi Yudisial (KY)"], "answer": 0, "explanation": "Pasal 3 UUD 1945 menetapkan kewenangan MPR melantik dan memberhentikan Presiden sesuai konstitusi."}, {"question": "Organisasi modern pertama yang menandai momentum Kebangkitan Nasional pada 20 Mei 1908 adalah...", "options": ["Boedi Oetomo", "Sarekat Dagang Islam", "Indische Partij", "Perhimpunan Indonesia", "Trikoro Dharmo"], "answer": 0, "explanation": "Boedi Oetomo didirikan pada 20 Mei 1908 oleh Sutomo dan para mahasiswa STOVIA."}, {"question": "Sarekat Dagang Islam (SDI) yang didirikan oleh H. Samanhudi pada tahun 1905 bertujuan awal untuk...", "options": ["Melindungi kepentingan para pedagang batik pribumi dari monopoli pedagang Tionghoa", "Mempersiapkan pemberontakan bersenjata melawan Belanda", "Menghimpun mahasiswa di Belanda", "Mendirikan lembaga perbankan syariah", "Menuntut kemerdekaan di hadapan parlemen Belanda"], "answer": 0, "explanation": "SDI didirikan di Surakarta pada 1905 untuk memperkuat posisi pedagang batik muslim lokal."}, {"question": "Partai politik pertama di Hindia Belanda yang secara tegas mencanangkan tujuan kemerdekaan Indonesia adalah...", "options": ["Indische Partij (1912)", "Sarekat Islam (1912)", "Boedi Oetomo (1908)", "Partai Komunis Indonesia (1920)", "Partai Nasional Indonesia (1927)"], "answer": 0, "explanation": "Indische Partij didirikan oleh Tiga Serangkai (Douwes Dekker, Cipto Mangunkusumo, Ki Hajar Dewantara) tahun 1912."}, {"question": "Perundingan Linggarjati yang disepakati pada akhir tahun 1946 menghasilkan pengakuan de facto Belanda atas wilayah...", "options": ["Jawa, Madura, dan Sumatera", "Seluruh kepulauan Indonesia dari Sabang sampai Merauke", "Hanya Daerah Istimewa Yogyakarta dan Surakarta", "Jawa Barat dan Sumatera Utara saja", "Wilayah Maluku dan Papua Barat"], "answer": 0, "explanation": "Perundingan Linggarjati mengakui de facto wilayah RI meliputi Jawa, Madura, dan Sumatera."}, {"question": "Konflik diplomasi Indonesia-Belanda yang berujung pada penyusutan wilayah RI akibat 'Garis Status Quo Van Mook' adalah...", "options": ["Perjanjian Renville (1948)", "Perundingan Linggarjati (1946)", "Persetujuan Roem-Royen (1949)", "Konferensi Meja Bundar (1949)", "Perjanjian Hoge Veluwe (1946)"], "answer": 0, "explanation": "Perjanjian Renville di atas kapal USS Renville membagi wilayah melalui garis demarkasi Van Mook."}, {"question": "Persetujuan Roem-Royen pada tanggal 7 Mei 1949 memiliki signifikansi diplomasi berupa...", "options": ["Pemulihan pemerintahan Republik Indonesia ke Yogyakarta dan persiapan KMB", "Penyerahan tanpa syarat seluruh tentara Belanda di Indonesia", "Pembubaran organisasi kepemudaan bersenjata", "Pembentukan pakta pertahanan militer bersama", "Penyatuan mata uang Gulden dan Rupiah"], "answer": 0, "explanation": "Persetujuan Roem-Royen memulihkan mandat pemimpin RI ke Yogyakarta dan mengantarkan ke KMB."}, {"question": "Konferensi Meja Bundar (KMB) yang diselenggarakan di Den Haag pada akhir 1949 menghasilkan keputusan berupa...", "options": ["Pengakuan kedaulatan kepada Republik Indonesia Serikat (RIS)", "Penggabungan Indonesia ke dalam kerajaan persemakmuran Belanda", "Pembentukan pemerintahan militer sementara PBB", "Pembatalan seluruh proklamasi kemerdekaan 17 Agustus 1945", "Penyerahan Papua Barat langsung pada tahun 1949 tanpa syarat"], "answer": 0, "explanation": "Hasil utama KMB adalah pengakuan kedaulatan Belanda kepada RIS pada 27 Desember 1949."}, {"question": "Dekrit Presiden 5 Juli 1959 dikeluarkan oleh Presiden Soekarno dengan alasan mendasar berupa...", "options": ["Kegagalan Dewan Konstituante menetapkan UUD baru sehingga mengancam stabilitas negara", "Tuntutan agresi militer dari negara sekutu", "Keinginan militer untuk membubarkan seluruh kementerian", "Adanya desakan pembentukan negara federal baru", "Keberhasilan pemilu pertama tahun 1955 tanpa kompromi"], "answer": 0, "explanation": "Dekrit 5 Juli 1959 membubarkan Konstituante dan memberlakukan kembali UUD 1945."}, {"question": "Titik tolak bergulirnya Era Reformasi di Indonesia pada 21 Mei 1998 ditandai dengan...", "options": ["Pengunduran diri Presiden Soeharto dan pengalihan mandat kepada B.J. Habibie", "Dekrit pembubaran DPR oleh Presiden Gus Dur", "Pelaksanaan pemilu multi-partai pertama tahun 1955", "Amandemen pertama UUD 1945 di era Megawati", "Pencanangan otonomi khusus Papua di era SBY"], "answer": 0, "explanation": "Presiden Soeharto meletakkan jabatan pada 21 Mei 1998 dan digantikan oleh Wapres B.J. Habibie."}, {"question": "Tonggak persatuan pemuda dari berbagai suku dan daerah di Nusantara dikukuhkan dalam peristiwa...", "options": ["Sumpah Pemuda 28 Oktober 1928", "Kongres Perempuan Indonesia 1928", "Rapat Raksasa Lapangan Ikada 1945", "Peristiwa Rengasdengklok 1945", "Bandung Lautan Api 1946"], "answer": 0, "explanation": "Kongres Pemuda II pada 28 Oktober 1928 melahirkan ikrar Sumpah Pemuda satu nusa, satu bangsa, satu bahasa."}, {"question": "Fungsi Pancasila sebagai 'Jiwa dan Kepribadian Bangsa Indonesia' mencerminkan...", "options": ["Karakteristik, budi pekerti, dan nilai luhur yang membedakan bangsa Indonesia dari bangsa lain", "Kewajiban mengenakan pakaian daerah pada hari kerja", "Ketetapan hukum militer darurat", "Larangan bagi warga negara bepergian ke luar negeri", "Sistem ekonomi barter tradisional semata"], "answer": 0, "explanation": "Pancasila sebagai kepribadian bangsa merupakan cerminan karakteristik khas peradaban Indonesia."}, {"question": "Makna perisai di dada burung Garuda yang memiliki garis hitam tebal melintang di tengah adalah...", "options": ["Melambangkan garis khatulistiwa yang melintasi kepulauan Indonesia", "Batas pemisah antara wilayah barat dan timur Indonesia", "Lambang benteng pertahanan maritim Nusantara", "Simbol jalur pelayaran rempah-rempah kuno", "Batas netralitas politik luar negeri Indonesia"], "answer": 0, "explanation": "Garis hitam tebal mendatar pada perisai melambangkan letak geografis Indonesia di garis khatulistiwa."}, {"question": "Sila dalam Pancasila yang menjadi landasan moral spiritual dan fondasi etika bagi sila-sila lainnya adalah...", "options": ["Sila Pertama (Ketuhanan Yang Maha Esa)", "Sila Kedua (Kemanusiaan yang Adil dan Beradab)", "Sila Ketiga (Persatuan Indonesia)", "Sila Keempat (Kerakyatan yang Dipimpin oleh Hikmat Kebijaksanaan)", "Sila Kelima (Keadilan Sosial bagi Seluruh Rakyat Indonesia)"], "answer": 0, "explanation": "Sila I mendasari dan menjiwai keempat sila berikutnya."}, {"question": "Menurut Pasal 1 ayat (2) UUD 1945 pasca-amandemen, kedaulatan berada di tangan rakyat dan dilaksanakan...", "options": ["Menurut Undang-Undang Dasar", "Sepenuhnya oleh Majelis Permusyawaratan Rakyat", "Oleh Presiden dan Dewan Perwakilan Rakyat", "Melalui referendum berkala", "Oleh Mahkamah Konstitusi"], "answer": 0, "explanation": "Sebelum amandemen kedaulatan dilakukan sepenuhnya oleh MPR, pasca-amandemen dilaksanakan menurut UUD."}, {"question": "Lembaga peradilan yang berwenang menguji undang-undang terhadap UUD 1945 (Judicial Review) adalah...", "options": ["Mahkamah Konstitusi (MK)", "Mahkamah Agung (MA)", "Komisi Yudisial (KY)", "Pengadilan Tinggi Tata Usaha Negara (PTTUN)", "Badan Pengawas Pemilu (Bawaslu)"], "answer": 0, "explanation": "Pasal 24C UUD 1945 memberikan kewenangan MK untuk menguji UU terhadap UUD 1945."}, {"question": "Komisi Yudisial (KY) bersifat mandiri yang berwenang mengusulkan pengangkatan Hakim Agung dan...", "options": ["Menjaga dan menegakkan kehormatan, keluhuran martabat, serta perilaku hakim", "Memeriksa laporan keuangan kementerian", "Mengadili perkara pidana korupsi pejabat", "Menyusun undang-undang bidang peradilan", "Membubarkan partai politik yang bermasalah"], "answer": 0, "explanation": "Pasal 24B UUD 1945 menetapkan wewenang KY dalam menjaga marwah dan kode etik hakim."}], "TKT": [{"question": "Dasar hukum Grand Design Reformasi Birokrasi (GDRB) 2010–2025 di Indonesia ditetapkan melalui...", "options": ["Perpres No. 81 Tahun 2010", "Perpres No. 54 Tahun 2010", "UU No. 25 Tahun 2009", "KepmenPAN No. 63 Tahun 2003", "Keppres No. 24 Tahun 2010"], "answer": 0, "explanation": "Perpres No. 81/2010 menetapkan Grand Design Reformasi Birokrasi 2010–2025."}, {"question": "Profil birokrasi berkelas dunia yang ditargetkan dalam Grand Design Reformasi Birokrasi bercirikan birokrasi yang...", "options": ["Bersih, akuntabel, berkinerja tinggi, efektif, efisien, dan melayani publik secara prima", "Birokrasi sentralistik dengan kewenangan mutlak pejabat pusat", "Birokrasi yang berfokus mencari keuntungan finansial sebesar-besarnya", "Birokrasi tanpa batasan hierarki dan tanpa pertanggungjawaban audit", "Birokrasi yang berorientasi pada ekspansi jumlah pegawai negeri"], "answer": 0, "explanation": "Sasaran reformasi birokrasi adalah birokrasi bersih, akuntabel, kapabel, dan memberikan pelayanan berkualitas."}, {"question": "Salah satu dari 8 area perubahan dalam Reformasi Birokrasi yang berfokus pada penghapusan tumpang tindih regulasi adalah...", "options": ["Penataan Peraturan Perundang-undangan (Deregulasi)", "Penataan Sistem Manajemen SDM Aparatur", "Penguatan Pengawasan Intern", "Peningkatan Kualitas Pelayanan Publik", "Manajemen Perubahan Sikap"], "answer": 0, "explanation": "Area deregulasi bertujuan menyelaraskan aturan agar tidak tumpang tindih dan menghambat pelayanan."}, {"question": "Penerapan Sistem Merit dalam pembinaan karier ASN merupakan pilar reformasi pada area...", "options": ["Penataan Sistem Manajemen SDM Aparatur", "Penguatan Akuntabilitas Kinerja", "Penataan Tata Laksana", "Penguatan Organisasi Kelembagaan", "Penataan Regulasi Keuangan"], "answer": 0, "explanation": "Sistem merit menjamin rekrutmen, promosi, dan penggajian ASN berbasis kualifikasi, kompetensi, dan kinerja."}, {"question": "Pedoman teknis mengenai siklus dan evaluasi kebijakan publik di lingkungan aparatur pemerintah diatur dalam...", "options": ["Permen PANRB No. 04 Tahun 2007", "PP No. 94 Tahun 2021", "UU No. 30 Tahun 2014", "Peraturan BKN No. 24 Tahun 2017", "Inpres No. 7 Tahun 1999"], "answer": 0, "explanation": "Permen PANRB No. 04/2007 memberikan pedoman tahapan siklus formulasi hingga evaluasi kebijakan."}, {"question": "Tahapan pertama yang krusial dalam siklus kebijakan publik menurut Permen PANRB No. 04/2007 adalah...", "options": ["Formulasi masalah publik dan penyusunan agenda kebijakan (Agenda Setting)", "Evaluasi dampak pasca-pelaksanaan kebijakan", "Penyusunan laporan audit akuntabilitas keuangan", "Revisi pasal-pasal peraturan perundang-undangan", "Sosialisasi masif media massa"], "answer": 0, "explanation": "Siklus kebijakan diawali dengan mengidentifikasi masalah publik dan mengangkatnya ke agenda pemerintah."}, {"question": "Tahap dalam siklus kebijakan yang mentransformasikan naskah kebijakan ke dalam program operasional nyata di lapangan adalah...", "options": ["Implementasi kebijakan", "Penetapan agenda masalah", "Formulasi alternatif solusi", "Evaluasi ex-ante", "Terminasi regulasi"], "answer": 0, "explanation": "Implementasi merupakan tahap pelaksanaan nyata instrumen kebijakan kepada kelompok sasaran."}, {"question": "Tujuan utama dari tahap Evaluasi Kinerja Kebijakan Publik adalah...", "options": ["Menilai apakah intervensi kebijakan efektif mencapai target dan memberikan dampak yang diharapkan", "Mencari kambing hitam atas kegagalan teknis di lapangan", "Menjustifikasi penambahan anggaran dinas tanpa telaah empiris", "Menghentikan seluruh program kerja instansi secara sepihak", "Menghapus kewajiban konsultasi publik"], "answer": 0, "explanation": "Evaluasi bertujuan mengukur ketercapaian sasaran, dampak, efisiensi, dan efektivitas intervensi publik."}, {"question": "Apabila hasil evaluasi menunjukkan bahwa kebijakan sudah usang atau tujuan intervensinya telah tercapai sepenuhnya, tindakan siklus berikutnya adalah...", "options": ["Terminasi atau revisi regulasi", "Pelipatgandaan alokasi anggaran", "Pengabaian hasil audit evaluator", "Pembekuan struktur organisasi pelaksana", "Pencabutan seluruh UU terkait"], "answer": 0, "explanation": "Hasil evaluasi menentukan apakah suatu regulasi direvisi, diganti, atau diterminasi (dihentikan)."}, {"question": "Perumusan kebijakan berbasis data dan bukti faktual di lapangan dikenal dalam administrasi publik sebagai...", "options": ["Evidence-Based Policy Making", "Intuition-Based Policy Making", "Trial-and-Error Policy", "Top-Down Arbitrary Policy", "Bureaucratic Inertia"], "answer": 0, "explanation": "Evidence-based policy making mendasarkan formulasi regulasi pada riset, fakta empiris, dan data akurat."}, {"question": "Fungsi manajemen yang menetapkan sasaran organisasi, target kinerja, strategi, dan estimasi sumber daya di awal periode adalah...", "options": ["Planning (Perencanaan)", "Organizing (Pengorganisasian)", "Actuating (Penggerakan)", "Controlling (Pengawasan)", "Budgeting semata"], "answer": 0, "explanation": "Planning adalah proses perumusan sasaran, tujuan, dan metode pencapaian terbaik."}, {"question": "Penyusunan Struktur Organisasi dan Tata Kerja (SOTK), analisis jabatan, dan alokasi personel merupakan implementasi fungsi...", "options": ["Organizing", "Planning", "Actuating", "Controlling", "Evaluating"], "answer": 0, "explanation": "Organizing berfokus pada pembagian tugas, wewenang, unit kerja, dan sumber daya."}, {"question": "Kepemimpinan transformasional, motivasi kerja, keteladanan, dan komunikasi persuasif kepada staf tergolong dalam fungsi...", "options": ["Actuating", "Planning", "Organizing", "Controlling", "Archiving"], "answer": 0, "explanation": "Actuating melibatkan dorongan semangat, arahan, dan koordinasi manusia untuk bergerak bersama."}, {"question": "Pemantauan ketercapaian target IKU, analisis kesenjangan deviasi, serta penerapan tindakan korektif merupakan fungsi...", "options": ["Controlling", "Actuating", "Organizing", "Planning", "Negotiating"], "answer": 0, "explanation": "Controlling adalah fungsi pengawasan terhadap standar baku dan pengambilan tindakan korektif."}, {"question": "Dalam konsep POAC, jika manajer mendeteksi proyek tertunda karena kendala personel lalu melakukan penataan ulang beban kerja staf, manajer menggabungkan fungsi...", "options": ["Controlling dan Organizing", "Hanya Planning", "Hanya Actuating", "Actuating dan Budgeting", "Planning tanpa koreksi"], "answer": 0, "explanation": "Mendeteksi keterlambatan adalah Controlling, meredistribusi tugas staf adalah Organizing."}, {"question": "Dokumen Indikator Kinerja Utama (IKU) dan Rencana Strategis (Renstra) instansi merupakan instrumen dari fungsi...", "options": ["Planning", "Controlling", "Organizing", "Actuating", "Directing"], "answer": 0, "explanation": "IKU dan Renstra dirumuskan pada tahap perencanaan (Planning)."}, {"question": "Standar Operasional Prosedur (SOP) dan uraian tugas kedinasan (Job Description) dihasilkan dari fungsi manajemen...", "options": ["Organizing", "Controlling", "Actuating", "Lobbying", "Marketing"], "answer": 0, "explanation": "SOP dan job description mengatur alur kerja dan pembagian tugas (Organizing)."}, {"question": "Pengawasan fungsional rutin yang dilaksanakan oleh Inspektorat Daerah atau Inspektorat Jenderal Kementerian merupakan wujud fungsi...", "options": ["Controlling", "Planning", "Organizing", "Actuating", "Recruiting"], "answer": 0, "explanation": "Pengawasan intern oleh APIP adalah manifestasi fungsi pengawasan (Controlling)."}, {"question": "Prinsip 'Transparansi' dalam tata kelola pemerintahan yang baik (Good Governance) menuntut agar...", "options": ["Informasi kebijakan publik dapat diakses secara mudah, akurat, dan tepat waktu oleh masyarakat", "Seluruh data rahasia intelijen dipublikasikan bebas", "Pejabat publik tidak perlu membuat laporan kerja tertulis", "Masyarakat dilarang mengkritisi penggunaan anggaran", "Hanya media tertentu yang boleh meliput dinas"], "answer": 0, "explanation": "Transparansi menjamin keterbukaan akses informasi publik yang akurat dan dapat dipahami."}, {"question": "Prinsip 'Akuntabilitas' menuntut bahwa setiap keputusan dan tindakan birokrasi harus...", "options": ["Dapat dipertanggungjawabkan secara hukum, moral, dan kinerja kepada publik", "Dilakukan tanpa perlu koordinasi dengan pimpinan", "Disembunyikan dari pengawasan badan audit", "Diserahkan tanggung jawabnya kepada staf honorer", "Menguntungkan golongan partai politik tertentu"], "answer": 0, "explanation": "Akuntabilitas berarti aparatur wajib mempertanggungjawabkan pelaksanaan tugas dan anggarannya."}, {"question": "Partisipasi publik (Public Participation) dalam Good Governance bermakna...", "options": ["Masyarakat dilibatkan dan didengar aspirasinya dalam perumusan kebijakan publik", "Masyarakat diwajibkan membiayai seluruh fasilitas kantor dinas", "Partisipasi hanya diperbolehkan satu kali dalam 5 tahun", "Aparatur tidak boleh menerima kritik dari warga", "Pengambilan keputusan dilakukan sepihak tanpa dengar pendapat"], "answer": 0, "explanation": "Partisipasi publik menjamin hak warga negara untuk bersuara dalam proses pengambilan keputusan."}, {"question": "Sistem Perencanaan Pembangunan Nasional (SPPN) diatur dalam UU No. 25/2004. Periode waktu dokumen RPJP Nasional adalah...", "options": ["20 Tahun", "5 Tahun", "1 Tahun", "10 Tahun", "25 Tahun"], "answer": 0, "explanation": "RPJP Nasional berlaku untuk jangka waktu 20 tahun sebagai pedoman makro."}, {"question": "RPJM Nasional berlaku untuk kurun waktu 5 tahun yang berfungsi untuk...", "options": ["Menjabarkan visi, misi, dan program Presiden ke dalam agenda pembangunan nasional", "Menggantikan UUD 1945 setiap pergantian kabinet", "Mengatur tata cara pemilu daerah secara mandiri", "Menghapus rencana kerja unit kementerian", "Menjadi dasar mutlak penentuan suku bunga BI"], "answer": 0, "explanation": "RPJM Nasional menjabarkan visi misi Presiden menjadi 7 agenda pembangunan selama 5 tahun."}, {"question": "Rencana Kerja Pemerintah (RKP) disusun untuk jangka waktu 1 tahun yang menjadi dasar penyusunan...", "options": ["Rancangan Anggaran Pendapatan dan Belanja Negara (RAPBN)", "Undang-Undang Dasar Perubahan", "Ketetapan MPR tentang GBHN", "Struktur Organisasi Baru Kementerian", "Perjanjian Dagang Bilateral Internasional"], "answer": 0, "explanation": "RKP tahunan menjadi landasan operasional penyusunan nota keuangan dan RAPBN."}, {"question": "Prinsip 'Rule of Law' dalam tata kelola pemerintahan yang baik mewajibkan agar...", "options": ["Penegakan hukum dilakukan secara adil, tidak diskriminatif, dan mengikat seluruh aparatur", "Pejabat eselon tertinggi kebal terhadap sanksi hukum pidana", "Aturan dapat diubah sesuka hati sesuai instruksi verbal pimpinan", "Hukum adat dapat menggantikan konstitusi nasional", "Peraturan dinas dirahasiakan dari publik"], "answer": 0, "explanation": "Rule of Law menjamin kepastian hukum dan perlakuan setara di depan hukum bagi seluruh warga."}, {"question": "Tindakan kepemimpinan birokrasi yang memotivasi bawahan untuk melampaui kepentingan pribadi demi kepentingan instansi disebut...", "options": ["Kepemimpinan Transformasional", "Kepemimpinan Otoriter", "Kepemimpinan Transaksional Kaku", "Laissez-faire absolut", "Kepemimpinan Nepotis"], "answer": 0, "explanation": "Kepemimpinan transformasional membakar motivasi dan visi jangka panjang anggota tim."}, {"question": "Penetapan target kinerja tahunan yang diukur melalui Indikator Kinerja Individu (SKI/SKP) merupakan perpaduan fungsi...", "options": ["Planning dan Controlling", "Hanya Actuating", "Organizing tanpa target", "Marketing birokrasi", "Budgeting murni"], "answer": 0, "explanation": "Penetapan target SKP adalah Planning, pemantauan pencapaian target adalah Controlling."}, {"question": "Evaluasi 'Ex-post' dalam siklus kebijakan publik dilakukan pada saat...", "options": ["Setelah kebijakan selesai diimplementasikan untuk menilai dampak jangka panjangnya", "Sebelum naskah kebijakan dirumuskan", "Ketika rancangan kebijakan baru dibahas di parlemen", "Saat tender pengadaan proyek baru dibuka", "Sebelum masalah publik diidentifikasi"], "answer": 0, "explanation": "Evaluasi ex-post dilakukan setelah kebijakan berjalan untuk menganalisis dampak akhirnya."}, {"question": "Penyelarasan antara Rencana Strategis Kementerian/Lembaga (Renstra K/L) dengan RPJM Nasional mencerminkan asas...", "options": ["Keterpaduan dan konsistensi perencanaan pembangunan vertikal", "Pemisahan kekuasaan eksekutif dan yudikatif", "Kemerdekaan anggaran otonom tanpa koordinasi", "Penyusunan program instansi secara terisolasi", "Ego sektoral birokrasi"], "answer": 0, "explanation": "Renstra K/L wajib selaras dan menjabarkan arah prioritas RPJMN secara konsisten."}, {"question": "Tindakan korektif (corrective measure) oleh pimpinan instansi harus segera diambil apabila...", "options": ["Terjadi deviasi kinerja negatif antara target perencanaan dengan capaian riil di lapangan", "Realisasi anggaran mencapai efisiensi 100%", "Tidak ada komplain dari masyarakat sama sekali", "Staf berhasil menyelesaikan tugas sebelum batas waktu", "Instansi menerima penghargaan pelayanan prima"], "answer": 0, "explanation": "Tindakan korektif dibutuhkan segera manakala realisasi menyimpang dari target indikator baku."}, {"question": "Tahap penetapan agenda kebijakan (Agenda Setting) terjadi ketika masalah publik...", "options": ["Mendapat perhatian serius dari pembuat kebijakan dan disepakati untuk dicarikan solusi pemerintah", "Sudah diselesaikan secara tuntas oleh masyarakat sendiri", "Ditolak pembahasannya di dewan perwakilan", "Telah kedaluwarsa masa berlakunya", "Hanya dibicarakan secara santai di media sosial"], "answer": 0, "explanation": "Agenda setting adalah tahap krusial di mana masalah publik diangkat menjadi agenda resmi kebijakan publik."}, {"question": "Dalam tata kelola organisasi, prinsip pembagian kerja (Division of Work) bertujuan utama untuk...", "options": ["Meningkatkan efisiensi dan spesialisasi keahlian pegawai dalam menjalankan tugas", "Menciptakan kesenjangan status sosial antarpegawai", "Memperbanyak jumlah rantai birokrasi yang rumit", "Menghindari tanggung jawab individu saat terjadi kesalahan", "Mengurangi interaksi kerja antardivisi"], "answer": 0, "explanation": "Pembagian kerja menciptakan kejelasan peran dan spesialisasi efisiensi."}, {"question": "Pengawasan preventif dalam fungsi Controlling birokrasi dilakukan dengan cara...", "options": ["Menerapkan SOP, pedoman teknis, dan verifikasi sebelum anggaran/kegiatan dilaksanakan", "Menjatuhkan hukuman penjara setelah uang negara hilang", "Memanggil auditor eksternal setelah laporan tahunan ditutup", "Membiarkan proyek berjalan tanpa panduan tertulis", "Menolak seluruh laporan pertanggungjawaban"], "answer": 0, "explanation": "Pengawasan preventif bersifat mencegah penyimpangan sejak sebelum aktivitas dieksekusi."}, {"question": "Salah satu wujud implementasi 'Akuntabilitas Berorientasi Hasil' dalam reformasi birokrasi adalah penerapan...", "options": ["SAKIP (Sistem Akuntabilitas Kinerja Instansi Pemerintah)", "Absensi manual sidik jari di buku harian", "Pengadaan seragam baru setiap bulan", "Kewajiban staf lembur tanpa indikator capaian", "Peningkatan kuota dinas luar kota"], "answer": 0, "explanation": "SAKIP mengukur keselarasan antara anggaran yang dibelanjakan dengan hasil nyata (outcome) bagi masyarakat."}, {"question": "Dalam hierarki perencanaan daerah, dokumen Rencana Pembangunan Jangka Menengah Daerah (RPJMD) berlaku untuk periode...", "options": ["5 Tahun", "20 Tahun", "1 Tahun", "10 Tahun", "3 Tahun"], "answer": 0, "explanation": "RPJMD menjabarkan visi misi Kepala Daerah terpilih untuk periode 5 tahun."}], "TSI": [{"question": "Empat pilar pokok dalam peta jalan Literasi Digital Nasional bagi aparatur sipil negara meliputi...", "options": ["Digital Skills, Digital Culture, Digital Ethics, dan Digital Safety", "Digital Hardware, Digital Coding, Digital Gaming, dan Digital Law", "Digital Marketing, Digital Crypto, Digital Money, dan Digital Sale", "Digital Browser, Digital Laptop, Digital Mouse, dan Digital Screen", "Digital Media, Digital Network, Digital Storage, dan Digital Cloud"], "answer": 0, "explanation": "Empat pilar literasi digital adalah Skills (cakap), Culture (budaya), Ethics (etika), dan Safety (aman)."}, {"question": "Kemampuan aparatur dalam mengoperasikan perangkat keras, peramban internet, dan aplikasi korespondensi kedinasan termasuk pilar...", "options": ["Digital Skills", "Digital Culture", "Digital Ethics", "Digital Safety", "Digital Citizenship"], "answer": 0, "explanation": "Digital Skills berfokus pada kecakapan teknis penggunaan perangkat lunak dan keras komputer."}, {"question": "Menjunjung tinggi nilai toleransi, persatuan bangsa, dan Bhinneka Tunggal Ika dalam interaksi di forum digital merupakan cerminan...", "options": ["Digital Culture", "Digital Skills", "Digital Safety", "Digital Storage", "Digital Automation"], "answer": 0, "explanation": "Digital Culture adalah pembiasaan nilai-nilai luhur kebangsaan dalam ruang siber."}, {"question": "Pilar yang mengatur etika bermedia digital (netiquette), sopan santun komunikasi, dan kepatuhan terhadap UU ITE adalah...", "options": ["Digital Ethics", "Digital Safety", "Digital Skills", "Digital Infrastructure", "Digital Science"], "answer": 0, "explanation": "Digital Ethics menekankan pada moralitas, etika, dan integritas di ruang digital."}, {"question": "Manajemen kata sandi kuat, perlindungan data pribadi, dan kewaspadaan terhadap penipuan daring merupakan aspek...", "options": ["Digital Safety", "Digital Culture", "Digital Skills", "Digital Ethics", "Digital Governance"], "answer": 0, "explanation": "Digital Safety adalah kecakapan melindungi keamanan data, perangkat, dan identitas digital."}, {"question": "Tindakan siber yang memancing korban mengklik tautan web tiruan untuk mencuri kredensial akun dinas disebut...", "options": ["Phishing", "DDoS", "Defragmenting", "Debugging", "Tethering"], "answer": 0, "explanation": "Phishing adalah teknik penipuan dengan memalsukan halaman resmi untuk mencuri login/sandi."}, {"question": "Penerapan Autentikasi Dua Faktor (Two-Factor Authentication / 2FA) bertujuan utama untuk...", "options": ["Mencegah akses ilegal dengan menambahkan lapisan verifikasi kedua selain kata sandi", "Mempercepat transfer berkas berukuran besar", "Menghemat penggunaan baterai ponsel dinas", "Menghapus malware otomatis dari memori komputer", "Menghubungkan akun dinas dengan seluruh akun media sosial"], "answer": 0, "explanation": "2FA mewajibkan konfirmasi kode OTP/token verifikasi ekstra di samping password."}, {"question": "Serangan perangkat lunak jahat yang mengenkripsi seluruh file penting instansi dan meminta uang tebusan dikenal sebagai...", "options": ["Ransomware", "Adware", "Freeware", "Spyware tanpa enkripsi", "Firmware update"], "answer": 0, "explanation": "Ransomware mengunci enkripsi data instansi dan menuntut tebusan uang untuk kunci dekripsi."}, {"question": "Penyebaran informasi sensitif atau data pribadi seseorang (seperti NIK, nomor rekening, alamat rumah) tanpa izin disebut...", "options": ["Doxxing", "Blogging", "Streaming", "Vlogging", "Bookmarking"], "answer": 0, "explanation": "Doxxing adalah publikasi ilegal informasi privat seseorang untuk mengintimidasi atau mempermalukan."}, {"question": "Kriteria kata sandi (password) kedinasan yang aman dan tangguh adalah...", "options": ["Kombinasi huruf besar, huruf kecil, angka, dan karakter simbol unik minimal 8-12 karakter", "Nama lengkap dan tahun kelahiran pegawai", "Urutan numerik sederhana seperti '12345678'", "Kata sandi yang sama persis untuk semua portal layanan kedinasan dan belanja daring", "Nama kementerian tempat bekerja tanpa simbol"], "answer": 0, "explanation": "Password yang kuat memadukan variasi alfanumerik dan simbolik yang tidak mudah ditebak brute-force."}, {"question": "Sikap yang tepat saat ASN menerima pesan provokatif di grup perpesanan yang belum jelas sumber validitasnya adalah...", "options": ["Melakukan pengecekan fakta (fact checking) dan tidak langsung membagikannya", "Meneruskannya ke seluruh grup keluarga dan rekan kantor", "Menambahkan narasi provokatif sebelum menyebarkannya", "Membuat status medsos berdasarkan pesan tersebut", "Menghapus nomor rekan yang mengirim pesan"], "answer": 0, "explanation": "Digital ethics menuntut kehati-hatian, verifikasi fakta, serta menyaring sebelum berbagi."}, {"question": "Kecakapan menggunakan fitur formula logika dan grafik pada lembar sebar (spreadsheet) untuk rekapitulasi data ASN termasuk pilar...", "options": ["Digital Skills", "Digital Safety", "Digital Ethics", "Digital Culture", "Digital Hardware"], "answer": 0, "explanation": "Penguasaan software olah data seperti Excel/Calc merupakan bagian dari Digital Skills."}, {"question": "Memprioritaskan pemanfaatan dan pengembangan aplikasi karya inovator dalam negeri mencerminkan pilar...", "options": ["Digital Culture", "Digital Safety", "Digital Forensic", "Digital Hack", "Digital Algorithm"], "answer": 0, "explanation": "Digital Culture mencakup kebanggaan dan cinta terhadap produk digital anak bangsa."}, {"question": "Konsep 'Netiquette' menuntut pengguna internet untuk...", "options": ["Memperlakukan sesama pengguna di ruang maya dengan rasa hormat selayaknya komunikasi tatap muka", "Menggunakan huruf kapital semua saat menulis sanggahan", "Bebas menghina orang lain karena identitas akun disamarkan", "Menyebarkan rahasia kantor demi popularitas konten", "Membajak materi grafis orang lain tanpa atribusi hak cipta"], "answer": 0, "explanation": "Netiquette mengajarkan norma kesantunan dan etika dalam berinteraksi di ruang siber."}, {"question": "Penggunaan koneksi Virtual Private Network (VPN) resmi instansi saat mengakses jaringan Wi-Fi publik bertujuan...", "options": ["Mengamankan dan mengenkripsi lalu lintas komunikasi data kedinasan dari risiko intersepsi", "Meningkatkan kecepatan unduh hingga batas maksimal", "Memungkinkan pegawai bermain gim tanpa terdeteksi pimpinan", "Mengabaikan kewajiban memasukkan kata sandi portal dinas", "Menonaktifkan proteksi firewall bawaan laptop"], "answer": 0, "explanation": "VPN mengamankan terowongan transmisi data dari potensi penyadapan pada Wi-Fi publik tak terenkripsi."}, {"question": "Rekam jejak digital (digital footprint) pasif seorang pengguna mencakup data seperti...", "options": ["Alamat IP, lokasi geolokasi, dan riwayat penelusuran yang terekam otomatis oleh server", "Komentar yang dituliskan di postingan akun berita", "Foto profil yang diunggah ke media sosial dinas", "Surat dinas yang diketik pada komputer luring", "Percakapan lisan saat rapat internal"], "answer": 0, "explanation": "Digital footprint pasif terkumpul otomatis oleh sistem jaringan tanpa kesadaran eksplisit pengguna."}, {"question": "Singkatan resmi SPBE dalam regulasi transformasi digital birokrasi pemerintahan Indonesia adalah...", "options": ["Sistem Pemerintahan Berbasis Elektronik", "Standar Pelayanan Birokrasi Elektronik", "Sistem Pengadaan Barang Elektronik", "Sistem Perizinan Berkas Elektronik", "Sentra Pelayanan Berkelanjutan Efisien"], "answer": 0, "explanation": "Perpres No. 95/2018 mengatur tentang Sistem Pemerintahan Berbasis Elektronik (SPBE)."}, {"question": "Tujuan pokok pelaksanaan SPBE di seluruh kementerian, lembaga, dan pemerintah daerah adalah mewujudkan...", "options": ["Tata kelola pemerintahan yang terintegrasi, transparan, efektif, akuntabel, dan pelayanan prima", "Pemberhentian seluruh pegawai negeri secara massal", "Komersialisasi seluruh data kependudukan demi pendapatan daerah", "Penghapusan mekanisme pengawasan keuangan daerah", "Sistem tertutup yang tidak dapat diakses masyarakat"], "answer": 0, "explanation": "SPBE bertujuan mengoptimalkan efisiensi birokrasi dan mutu pelayanan publik berbasis teknologi informasi."}, {"question": "Karakteristik 'Interoperabilitas' dalam arsitektur SPBE nasional bermakna...", "options": ["Kemampuan berbagai sistem elektronik dan basis data antarinstansi untuk saling bertukar informasi secara terpadu", "Keharusan setiap dinas membuat server independen yang terisolasi", "Pemisahan data kependudukan antara pemerintah pusat dan daerah", "Kewajiban membeli piranti lunak komersial luar negeri", "Pembatasan akses data hanya pada komputer kepala dinas"], "answer": 0, "explanation": "Interoperabilitas memastikan data dan aplikasi antarinstitusi dapat terhubung dan berkolaborasi mulus."}, {"question": "Kebijakan Satu Data Indonesia (SDI) sebagaimana diatur dalam Perpres No. 39/2019 menetapkan empat prinsip utama data, yaitu...", "options": ["Memenuhi standar data, memiliki metadata, memenuhi kaidah interoperabilitas, dan memakai kode referensi/data induk", "Tersimpan dalam bentuk cetak fisik, dirahasiakan, tidak boleh dibagikan, dan berbayar", "Data hanya disimpan di komputer pribadi tanpa backup awan", "Data diperbarui setiap sepuluh tahun sekali", "Data bebas dimanipulasi sesuai kebutuhan laporan tahunan"], "answer": 0, "explanation": "Prinsip SDI adalah: standar data, metadata, interoperabilitas, dan kode referensi data induk."}, {"question": "Layanan Tanda Tangan Elektronik (TTE) tersertifikasi yang diterbitkan oleh BSrE BSSN memberikan kepastian hukum berupa...", "options": ["Otentisitas identitas penandatangan, keutuhan isi dokumen, serta sifat nirsangkal (non-repudiation)", "Kekebalan hukum bagi seluruh pejabat penandatangan dokumen", "Kepastian bahwa proyek dinas pasti selesai tepat waktu", "Penghapusan seluruh kewajiban audit anggaran terkait", "Peniadaan syarat verifikasi berkas administrasi"], "answer": 0, "explanation": "TTE tersertifikasi menjamin bahwa dokumen asli tidak dimanipulasi dan sah berkekuatan hukum."}, {"question": "Pemanfaatan sistem persuratan dinas elektronik nasional (seperti aplikasi SRIKANDI) memberikan manfaat utama...", "options": ["Meningkatkan efisiensi disposisi persuratan kedinasan, kecepatan tracking, dan budaya kerja paperless", "Mengharuskan pencetakan berkas ratusan rim kertas setiap minggu", "Memperlambat koordinasi disposisi antara atasan dan staf", "Mewajibkan kurir fisik mengantar surat lintas kota", "Menghilangkan rekam arsip kedinasan jangka panjang"], "answer": 0, "explanation": "Aplikasi SRIKANDI mewujudkan integrasi kearsipan dinamis dan persuratan dinas nasional secara paperless."}, {"question": "Penerapan Single Sign-On (SSO) pada portal layanan aparatur bertujuan untuk...", "options": ["Memudahkan pengguna mengakses banyak aplikasi kedinasan hanya dengan satu kali otentikasi akun", "Memaksa ASN mengingat puluhan kombinasi sandi berbeda", "Membatasi pegawai membuka aplikasi kepegawaian", "Mengurangi kecepatan jaringan internet instansi", "Menonaktifkan fitur keamanan server dinas"], "answer": 0, "explanation": "SSO memberikan kepraktisan akses terpadu bagi pegawai tanpa harus berulang kali login."}, {"question": "Prinsip etis dalam pemanfaatan kecerdasan buatan (Artificial Intelligence) pada layanan publik birokrasi wajib mengedepankan...", "options": ["Transparansi algoritma, akuntabilitas hasil, perlindungan privasi, dan keadilan non-diskriminasi", "Penyerahan mutlak keputusan vonis pengadilan kepada mesin", "Penutupan kode pemrograman dari audit tim pengawas independen", "Pengabaian data sensitif warga negara demi kecepatan komputasi", "Komersialisasi profil identitas pemohon izin"], "answer": 0, "explanation": "Penggunaan AI di instansi pemerintah wajib tunduk pada etika, transparansi, dan hak asasi warga negara."}, {"question": "Fasilitas BCC (Blind Carbon Copy) pada surel kedinasan digunakan saat...", "options": ["Mengirim email ke banyak penerima dengan menyembunyikan daftar alamat email demi menjaga privasi", "Mengirim tembusan resmi yang wajib diketahui seluruh khalayak umum", "Menandai bahwa surat tersebut berstatus sangat rahasia intelijen", "Meneruskan email secara otomatis ke folder spam instansi", "Menghapus lampiran surat dinas secara otomatis"], "answer": 0, "explanation": "BCC menyembunyikan identitas alamat email penerima satu sama lain untuk alasan privasi."}, {"question": "Pencadangan data (backup) dokumen kedinasan secara teratur ke media penyimpanan eksternal atau cloud tersandi merupakan prosedur untuk...", "options": ["Menjamin pemulihan data (disaster recovery) saat terjadi kerusakan perangkat keras atau serangan siber", "Mengosongkan memori komputer agar aplikasi gim berjalan lancar", "Menghilangkan jejak audit pengeluaran keuangan", "Menduplikasi data rahasia untuk diperjualbelikan", "Menonaktifkan antivirus bawaan sistem"], "answer": 0, "explanation": "Backup menjamin ketersediaan data penting saat terjadi bencana sistem atau kerusakan fisik."}, {"question": "Ketika komputer dinas Anda mendadak menunjukkan gejala terinfeksi malware yang menyebar, langkah mitigasi cepat pertama adalah...", "options": ["Segera memutuskan sambungan kabel LAN dan mematikan Wi-Fi agar tidak menular ke intranet kantor", "Membuka seluruh file terenkripsi satu per satu", "Menyalin file yang terinfeksi ke flashdisk rekan kerja", "Membayar uang tebusan secara mandiri ke peretas", "Mengabaikannya dan mematikan monitor saja"], "answer": 0, "explanation": "Isolasi perangkat dari jaringan intranet mencegah penularan malware ke komputer lain."}, {"question": "Hak Cipta dan Kekayaan Intelektual atas karya digital orang lain diatur dalam perundang-undangan. Mengunduh dan memakai perangkat lunak bajakan di kantor melanggar pilar...", "options": ["Digital Ethics dan kepatuhan hukum digital", "Digital Hardware maintenance", "Digital Cloud Computing", "Digital Bandwidth", "Digital Signal Processing"], "answer": 0, "explanation": "Menggunakan peranti lunak bajakan melanggar etika dan hukum perlindungan hak cipta."}, {"question": "Teknik pencarian informasi cepat di Google dengan tanda petik ganda (contoh: \"Perpres 81 Tahun 2010\") bertujuan untuk...", "options": ["Mencari frasa kata kunci yang tepat dan berurutan secara persis", "Menghapus hasil pencarian regulasi terkait", "Menerjemahkan dokumen ke bahasa asing secara otomatis", "Mengunduh file PDF secara ilegal", "Menyaring situs berita terpercaya saja"], "answer": 0, "explanation": "Tanda kutip ganda membatasi pencarian pada frasa yang persis sama."}, {"question": "Tim Tanggap Insiden Keamanan Siber di instansi pemerintah dikenal dengan singkatan...", "options": ["CSIRT (Computer Security Incident Response Team)", "SATGAS Bencana Alam", "KOMINFO Helpdesk", "BKN Service Desk", "BAKN Cyber Team"], "answer": 0, "explanation": "CSIRT bertindak merespons, menganalisis, dan memulihkan insiden siber pada instansi pemerintah."}, {"question": "Pemanfaatan sistem komputasi awan (Cloud Computing) oleh instansi pemerintah melalui Pusat Data Nasional (PDN) bertujuan untuk...", "options": ["Meningkatkan efisiensi infrastruktur server, keamanan data, dan integrasi antarlembaga", "Mewajibkan tiap dinas membeli gedung server sendiri-sendiri", "Membuat data instansi rentan dihapus pihak ketiga", "Menghentikan seluruh layanan digital kantor", "Membatasi kecepatan akses internet daerah"], "answer": 0, "explanation": "PDN memfasilitasi konsolidasi pusat data pemerintah agar efisien, aman, dan terintegrasi."}, {"question": "Langkah antisipasi terhadap ancaman rekayasa sosial (Social Engineering) di dunia digital adalah...", "options": ["Tidak membagikan data OTP/kata sandi kepada siapa pun dan selalu memverifikasi identitas pihak yang menghubungi", "Langsung mempercayai penelepon yang mengaku dari kantor pusat", "Menyerahkan PIN perbankan jika diminta melalui telepon", "Mengunggah foto kartu identitas NIK ke media sosial publik", "Menggunakan tanggal lahir sebagai sandi email dinas"], "answer": 0, "explanation": "Social engineering menargetkan kelengahan manusia, sehingga kewaspadaan dan menjaga kerahasiaan OTP adalah kuncinya."}, {"question": "Tindakan membedakan mana informasi yang berbasis fakta dan mana yang berupa opini bias atau ujaran kebencian di internet adalah penerapan pilar...", "options": ["Digital Ethics dan Digital Culture", "Digital Hardware", "Digital Signal", "Digital Automation", "Digital Bandwidth"], "answer": 0, "explanation": "Menyaring informasi dengan etika dan kesadaran kritis mencerminkan Digital Ethics & Culture."}, {"question": "Dalam protokol pengamanan surel dinas, teknik 'Pemberian Label Rahasia/Enkripsi Pesan' dilakukan untuk...", "options": ["Memastikan isi korespondensi hanya bisa dibaca oleh penerima yang sah dan berkepentingan", "Mempercepat surat dibaca oleh seluruh staf kantor", "Menghapus pesan secara instan saat dibuka", "Menandai surat sebagai arsip yang tidak berguna", "Mencegah surat masuk ke kotak masuk pimpinan"], "answer": 0, "explanation": "Enkripsi surel mengamankan kerahasiaan isi naskah dinas dari penyadapan atau intersepsi."}, {"question": "Salah satu indikator indeks kematangan SPBE instansi pemerintah dinilai dari aspek...", "options": ["Tata kelola, layanan SPBE, manajemen TIK, dan kebijakan internal SPBE", "Jumlah pengadaan laptop termahal setiap tahun", "Banyaknya akun media sosial yang dimiliki pegawai", "Besarnya tagihan listrik bulanan ruang server", "Berapa banyak aplikasi gim yang diunduh pegawai"], "answer": 0, "explanation": "Evaluasi SPBE mengukur tata kelola, kebijakan, arsitektur, manajemen, dan keterpaduan layanan elektronik."}], "TKP": [{"question": "Berdasarkan Undang-Undang Nomor 5 Tahun 2014 tentang Aparatur Sipil Negara, pegawai ASN terdiri atas...", "options": ["Pegawai Negeri Sipil (PNS) dan Pegawai Pemerintah dengan Perjanjian Kerja (PPPK)", "PNS dan Pegawai Honorer Lepas", "PNS, PPPK, dan Karyawan Tetap BUMN", "Pegawai Tetap dan Tenaga Outsourcing", "Pejabat Karier dan Staf Khusus Menteri"], "answer": 0, "explanation": "Pasal 6 UU ASN menetapkan pegawai ASN berstatus PNS (tetap) dan PPPK (perjanjian kerja tertentu)."}, {"question": "Pengelolaan ASN berbasis sistem merit bertujuan menjamin pembinaan karier pegawai yang objektif berdasarkan...", "options": ["Kualifikasi, kompetensi, dan kinerja secara adil dan wajar tanpa diskriminasi", "Kedekatan kekeluargaan dengan pejabat pembina kepegawaian", "Afiliasi politik dengan partai penguasa", "Senioritas usia tanpa mempertimbangkan prestasi kerja", "Jumlah sumbangan dana kegiatan kedinasan"], "answer": 0, "explanation": "Sistem merit menjamin kesetaraan dan profesionalisme berdasarkan kualifikasi, kompetensi, dan kinerja nyata."}, {"question": "Berdasarkan Peraturan Pemerintah No. 94 Tahun 2021 tentang Disiplin PNS, jumlah kewajiban dan larangan yang diatur bagi PNS adalah...", "options": ["8 kewajiban dan 14 larangan", "10 kewajiban dan 10 larangan", "7 kewajiban dan 12 larangan", "5 kewajiban dan 15 larangan", "12 kewajiban dan 18 larangan"], "answer": 0, "explanation": "PP No. 94/2021 menetapkan 8 butir kewajiban dan 14 butir larangan bagi PNS."}, {"question": "Tingkatan sanksi hukuman disiplin PNS menurut PP No. 94 Tahun 2021 diklasifikasikan menjadi tiga tingkat, yaitu...", "options": ["Hukuman Disiplin Ringan, Sedang, dan Berat", "Hukuman Administratif, Finansial, dan Pidana", "Teguran, Skorsing, dan Pemecatan", "Peringatan I, Peringatan II, dan PHK", "Denda, Penjara, dan Penurunan Pangkat"], "answer": 0, "explanation": "Klasifikasi hukuman disiplin PNS terdiri atas tingkat Ringan, Sedang, dan Berat."}, {"question": "Salah satu bentuk hukuman disiplin tingkat sedang bagi PNS berdasarkan PP No. 94 Tahun 2021 adalah...", "options": ["Pemotongan tunjangan kinerja (tukin) sebesar 25% selama kurun waktu tertentu (6, 9, atau 12 bulan)", "Teguran lisan dari atasan langsung", "Pemberhentian dengan hormat tidak atas permintaan sendiri", "Penurunan jabatan setingkat lebih rendah selama 12 bulan", "Kewajiban menyampaikan permohonan maaf di media massa"], "answer": 0, "explanation": "Hukuman sedang berupa pemotongan tukin 25% selama 6, 9, atau 12 bulan."}, {"question": "Bentuk sanksi hukuman disiplin tingkat berat bagi PNS yang terbukti melakukan pelanggaran fatal antara lain...", "options": ["Penurunan jabatan setingkat lebih rendah, pembebasan dari jabatan, hingga pemberhentian sebagai PNS", "Teguran tertulis dari pejabat pembina kepegawaian", "Pemotongan tunjangan transport selama satu pekan", "Pemberian teguran simpatik saat apel pagi", "Larangan mengambil jatah cuti bersama"], "answer": 0, "explanation": "Hukuman berat meliputi penurunan jabatan, pembebasan jabatan menjadi pelaksana, s.d. pemberhentian."}, {"question": "Hak Cuti Tahunan diberikan kepada PNS yang telah bekerja sekurang-kurangnya 1 tahun secara terus-menerus dengan durasi...", "options": ["12 hari kerja", "14 hari kalender", "10 hari kerja", "20 hari kerja", "30 hari kalender"], "answer": 0, "explanation": "Cuti tahunan diberikan selama 12 hari kerja."}, {"question": "Syarat masa kerja minimal secara terus-menerus agar seorang PNS berhak mengajukan hak Cuti Besar adalah...", "options": ["5 tahun berturut-turut", "2 tahun berturut-turut", "3 tahun berturut-turut", "10 tahun berturut-turut", "1 tahun berturut-turut"], "answer": 0, "explanation": "PNS yang telah bekerja paling singkat 5 tahun secara terus-menerus berhak atas cuti besar."}, {"question": "Lamanya hak Cuti Melahirkan yang diberikan kepada PNS wanita untuk persalinan anak pertama s.d. ketiga adalah...", "options": ["3 bulan", "1 bulan", "2 bulan", "6 bulan", "40 hari"], "answer": 0, "explanation": "Cuti melahirkan diberikan untuk persalinan anak pertama sampai ketiga dengan durasi paling lama 3 bulan."}, {"question": "Jenis cuti yang diberikan apabila anggota keluarga inti (orang tua, istri/suami, anak, mertua) sakit keras atau meninggal dunia adalah...", "options": ["Cuti Karena Alasan Penting (CAP)", "Cuti Tahunan", "Cuti Besar", "Cuti Bersama", "Cuti di Luar Tanggungan Negara"], "answer": 0, "explanation": "Keluarga inti sakit keras/meninggal dunia atau melangsungkan pernikahan pertama termasuk dalam Cuti Alasan Penting."}, {"question": "Ketentuan administratif mengenai PNS yang sedang menjalani status Cuti di Luar Tanggungan Negara (CLTN) adalah...", "options": ["Tidak berhak menerima penghasilan apa pun dari negara dan masa cuti tidak diperhitungkan sebagai masa kerja", "Tetap menerima gaji pokok dan tunjangan anak-istri secara penuh", "Diberhentikan secara tidak hormat dari korps kepegawaian", "Dapat naik pangkat secara otomatis setiap periode berkala", "Tetap memiliki kewajiban hadir apel pagi harian"], "answer": 0, "explanation": "Selama CLTN, PNS dibebaskan dari jabatannya dan tidak berhak menerima penghasilan dari kas negara."}, {"question": "Korps Pegawai Republik Indonesia (KORPRI) bertindak sebagai wadah berhimpun seluruh pegawai ASN dengan doktrin kehormatan...", "options": ["Panca Prasetya Korpri", "Tri Dharma Perguruan Tinggi", "Sapta Marga", "Catur Prasetya", "Sumpah Prajurit"], "answer": 0, "explanation": "Doktrin pemersatu jiwa korps dan kehormatan ASN adalah Panca Prasetya Korpri."}, {"question": "Amanat Panca Prasetya KORPRI dalam menjaga profesionalitas aparatur sipil negara menegaskan kewajiban untuk...", "options": ["Memelihara persatuan dan kesatuan bangsa serta kesetiakawanan korps dengan menjaga netralitas politik", "Mendukung salah satu kandidat calon kepala daerah saat masa kampanye", "Menyalahgunakan wewenang jabatan untuk keuntungan partai koalisi", "Menolak melayani warga yang berbeda pandangan politik", "Memboikot instruksi pimpinan kementerian yang sah"], "answer": 0, "explanation": "Korpri berkomitmen menjunjung tinggi netralitas politik demi keutuhan persatuan bangsa."}, {"question": "Komponen Standar Pelayanan Publik yang wajib dipublikasikan oleh setiap unit penyelenggara layanan menurut UU No. 25/2009 mencakup...", "options": ["Persyaratan, mekanisme prosedur, jangka waktu penyelesaian, biaya/tarif, produk layanan, dan sarana pengaduan", "Nama seluruh kerabat pejabat loket pelayanan", "Laporan riwayat mutasi internal pegawai", "Daftar inventaris rahasia kantor", "Target setoran dana non-budgeter instansi"], "answer": 0, "explanation": "Standar Pelayanan wajib transparan memuat persyaratan, prosedur, waktu, tarif, hasil, dan pengelolaan komplain."}, {"question": "Asas pelayanan publik UU No. 25/2009 yang mewajibkan penyediaan loket khusus, jalur pemandu, dan kursi roda menegaskan prinsip...", "options": ["Fasilitas dan perlakuan khusus bagi kelompok rentan (disabilitas, lansia, wanita hamil)", "Persaingan bebas antarpemohon layanan", "Kesamaan tarif komersial bagi seluruh tingkatan ekonomi", "Prosedur berbelit-belit agar verifikasi lebih cermat", "Diskriminasi afirmatif pejabat struktural"], "answer": 0, "explanation": "Penyelenggara layanan publik wajib menyediakan fasilitas khusus yang ramah kelompok rentan."}, {"question": "Prinsip-prinsip pelayanan publik prima menurut KepmenPAN No. 63/KEP/M.PAN/7/2003 meliputi...", "options": ["Kesederhanaan, kejelasan, kepastian waktu, akurasi, keamanan, dan tanggung jawab", "Birokrasi bertingkat-tingkat tanpa batas waktu jelas", "Penarikan biaya sukarela tanpa tanda bukti resmi", "Ketidakpastian syarat dokumen demi fleksibilitas petugas", "Pelayanan eksklusif khusus bagi kalangan keluarga pejabat"], "answer": 0, "explanation": "Sendi pelayanan prima: sederhana, jelas, tepat waktu, akurat, aman, dan bertanggung jawab."}, {"question": "Seorang warga mengeluhkan lambatnya pengurusan dokumen izin usaha di loket dinas Anda. Sikap pelayanan prima yang tepat adalah...", "options": ["Mendengarkan keluhan dengan empati, memeriksa berkas secara cepat, dan memberikan penjelasan kepastian waktu penyelesaian", "Menyuruh warga tersebut menunggu di luar tanpa kepastian", "Menyalahkan rekan kerja lain di hadapan pemohon izin", "Meminta pemohon membayar uang percepatan agar selesai hari ini", "Menutup loket layanan lebih awal"], "answer": 0, "explanation": "Pelayanan berorientasi prima mengedepankan empati, solutif, transparan, dan tidak meminta gratifikasi."}, {"question": "Jika atasan meminta Anda meloloskan permohonan rekanan bisnis keluarganya yang tidak memenuhi persyaratan dokumen resmi, sikap Anda adalah...", "options": ["Menolak secara sopan dan menjelaskan bahwa seluruh berkas wajib memenuhi standar persyaratan regulasi yang berlaku", "Langsung menyetujuinya karena takut dimutasi oleh atasan", "Meminta imbalan uang pelicin sebelum memproses dokumen", "Menyerahkan berkas tersebut ke staf magang agar terhindar dari sanksi", "Membocorkan data internal instansi ke media daring"], "answer": 0, "explanation": "Integritas ASN diuji dengan menolak gratifikasi dan intervensi yang melanggar prosedur standar."}, {"question": "Ketika terjadi antrean panjang di loket pelayanan akibat gangguan sistem server jaringan, tindakan profesional yang harus segera diambil adalah...", "options": ["Menyampaikan permohonan maaf atas kendala teknis secara sopan, mengarahkan warga ke ruang tunggu yang nyaman, dan mengaktifkan pencatatan berkas cadangan manual", "Meninggalkan ruang loket dan membiarkan warga mengantre sendiri", "Menyalahkan penyedia jaringan internet di depan khalayak pemohon", "Menutup loket dan meminta warga datang esok hari tanpa penjelasan", "Memarahi warga yang mengeluhkan antrean"], "answer": 0, "explanation": "Manajemen komplain dan tanggap darurat memerlukan komunikasi santun dan solusi kontingensi."}, {"question": "Kunci utama penerapan 'Kepastian Waktu' dalam standar pelayanan publik adalah...", "options": ["Penyelesaian layanan tepat sesuai batas waktu (SLA) yang telah diumumkan kepada publik", "Memberikan estimasi waktu yang selalu berubah-ubah setiap jam", "Memperlambat durasi penyelesaian agar tampak bekerja keras", "Menyerahkan jadwal penyelesaian sepenuhnya kepada kehendak petugas", "Menolak pemohon yang bertanya mengenai status berkas"], "answer": 0, "explanation": "Kepastian waktu menjamin masyarakat menerima kepastian durasi layanan sesuai janji standar pelayanan."}, {"question": "Seorang PNS dijatuhi sanksi hukuman disiplin sedang berupa pemotongan tunjangan kinerja sebesar 25%. Ketentuan durasi pemotongan tersebut menurut PP 94/2021 adalah...", "options": ["Selama 6 bulan, 9 bulan, atau 12 bulan", "Selama 1 bulan, 2 bulan, atau 3 bulan", "Selama 2 tahun berturut-turut", "Selama 1 pekan saja", "Selama sisa masa kerja pegawai"], "answer": 0, "explanation": "PP 94/2021 mengatur hukuman potong tukin 25% dengan durasi 6, 9, atau 12 bulan."}, {"question": "Ketentuan mengenai Cuti Sakit bagi PNS menurut regulasi kepegawaian BKN menetapkan bahwa PNS yang sakit lebih dari 1 hari wajib...", "options": ["Melampirkan surat keterangan dokter yang sah", "Mengganti jam kerja pada hari libur", "Menyerahkan surat pernyataan bermaterai tanpa dokter", "Membayar kompensasi finansial ke kas dinas", "Membawa saksi rekan kerja ke hadapan pimpinan"], "answer": 0, "explanation": "PNS yang sakit lebih dari 1 hari wajib mengajukan permohonan dengan melampirkan surat keterangan dokter."}, {"question": "Jika seorang rekan kerja satu tim mengalami kendala keluarga mendadak sehingga penyelesaian laporan bersama tertunda, sikap kerja sama yang baik adalah...", "options": ["Berkoordinasi untuk membagi beban tugas rekan tersebut secara proporsional agar target laporan bersama tetap tercapai tepat waktu", "Melaporkan rekan tersebut ke atasan agar dikenai sanksi disiplin", "Membiarkan tugas terbengkalai dan menyalahkan rekan tersebut", "Menolak membantu karena itu bukan uraian tugas pribadi", "Meninggalkan pekerjaan dan pulang lebih awal"], "answer": 0, "explanation": "Prinsip kerja tim ASN mengedepankan empati, sinergi, dan komitmen penyelesaian target kinerja bersama."}, {"question": "Dalam hal terjadi keluhan pelayanan publik melalui kanal SP4N-LAPOR!, unit kerja penyelenggara layanan berkewajiban untuk...", "options": ["Menindaklanjuti, memverifikasi, dan memberikan jawaban penyelesaian dalam jangka waktu yang telah ditetapkan", "Menghapus laporan pengaduan tersebut dari sistem", "Memblokir identitas warga pelapor agar tidak mengadu lagi", "Membiarkan pengaduan menumpuk tanpa respons", "Menuntut balik warga atas pencemaran nama baik"], "answer": 0, "explanation": "Pengaduan masyarakat via SP4N-LAPOR! wajib dikelola, ditindaklanjuti, dan dijawab transparan."}, {"question": "Ketika Anda ditugaskan melayani pemohon izin yang bersikap emosional dan berbicara dengan nada tinggi karena keterlambatan berkasnya, sikap yang tepat adalah...", "options": ["Tetap tenang, tidak terpancing emosi, mendengarkan pokok permasalahannya, lalu memberikan penjelasan solutif secara sopan", "Membalas membentak pemohon agar suasana berimbang", "Memanggil satpam untuk mengusir paksa pemohon keluar ruangan", "Mengabaikan pertanyaan pemohon dan berpura-pura sibuk", "Menangis di hadapan pemohon"], "answer": 0, "explanation": "Kompetensi pelayanan menuntut kecerdasan emosional, ketenangan, dan penyampaian solusi secara profesional."}]};
+
+    // Current Exam State
+    let currentQuestions = [];
+    let userAnswers = {};
+    let isSubmitted = false;
+    let timerInterval = null;
+    let timeLeft = 90 * 60;
+
+    // Fisher-Yates Shuffle Algorithm
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Mengambil N soal acak dari bank dan mengacak pilihan gandanya
+    function sampleCategory(catName, count) {
+      const pool = QUESTION_BANK[catName];
+      const sampled = shuffle(pool).slice(0, count);
+
+      return sampled.map(q => {
+        // Objek pilihan dengan referensi jawaban benar
+        const optionsWithCorrect = q.options.map((optText, optIdx) => ({
+          text: optText,
+          isCorrect: optIdx === q.answer
+        }));
+
+        // Acak urutan pilihan ganda
+        const shuffledOptions = shuffle(optionsWithCorrect);
+        const newAnswerIndex = shuffledOptions.findIndex(o => o.isCorrect);
+
+        return {
+          category: catName,
+          question: q.question,
+          options: shuffledOptions.map(o => o.text),
+          answer: newAnswerIndex,
+          explanation: q.explanation
+        };
+      });
+    }
+
+    function generateNewExam() {
+      // Reset state
+      userAnswers = {};
+      isSubmitted = false;
+      timeLeft = 90 * 60;
+      document.getElementById('scoreModal').style.display = 'none';
+
+      // Tarik soal sesuai kuota: TWK: 30, TKT: 25, TSI: 30, TKP: 15
+      const twkSample = sampleCategory('TWK', 30);
+      const tktSample = sampleCategory('TKT', 25);
+      const tsiSample = sampleCategory('TSI', 30);
+      const tkpSample = sampleCategory('TKP', 15);
+
+      currentQuestions = [...twkSample, ...tktSample, ...tsiSample, ...tkpSample];
+
+      // Reset timer
+      clearInterval(timerInterval);
+      const timerEl = document.getElementById('timer');
+      timerInterval = setInterval(() => {
+        if (isSubmitted) {
+          clearInterval(timerInterval);
+          return;
+        }
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert('Waktu ujian telah berakhir!');
+          submitExam();
+          return;
+        }
+        timeLeft--;
+        const min = Math.floor(timeLeft / 60);
+        const sec = timeLeft % 60;
+        timerEl.innerHTML = `⏳ ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+      }, 1000);
+
+      document.getElementById('answeredCount').innerText = 'Terjawab: 0 / 100';
+
+      // Render tampilan
+      renderQuestions();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderQuestions() {
+      const wrapper = document.getElementById('questionsWrapper');
+      const palette = document.getElementById('paletteGrid');
+      wrapper.innerHTML = '';
+      palette.innerHTML = '';
+
+      currentQuestions.forEach((q, idx) => {
+        const qNum = idx + 1;
+
+        // Palette Button
+        const pBtn = document.createElement('button');
+        pBtn.className = 'palette-btn';
+        pBtn.id = `palette-${idx}`;
+        pBtn.innerText = qNum;
+        pBtn.onclick = () => {
+          document.getElementById(`q-${idx}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+        palette.appendChild(pBtn);
+
+        // Question Card
+        const card = document.createElement('div');
+        card.className = `question-card q-cat-${q.category}`;
+        card.id = `q-${idx}`;
+
+        const badgeClass = `badge-${q.category.toLowerCase()}`;
+        
+        let optionsHtml = '';
+        const optLetters = ['A', 'B', 'C', 'D', 'E'];
+        q.options.forEach((opt, optIdx) => {
+          optionsHtml += `
+            <label class="option-label" id="opt-label-${idx}-${optIdx}">
+              <input type="radio" name="q_${idx}" value="${optIdx}" onchange="selectOption(${idx}, ${optIdx})">
+              <span><strong>${optLetters[optIdx]}.</strong> ${opt}</span>
+            </label>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="question-header">
+            <span class="q-number">Soal Nomor ${qNum}</span>
+            <span class="q-badge ${badgeClass}">${q.category}</span>
+          </div>
+          <div class="question-text">${q.question}</div>
+          <div class="options-container" id="opt-container-${idx}">
+            ${optionsHtml}
+          </div>
+          <div class="explanation-box" id="explanation-${idx}">
+            <strong>Pembahasan & Dasar Regulasi:</strong><br>
+            ${q.explanation}
+          </div>
+        `;
+
+        wrapper.appendChild(card);
+      });
+    }
+
+    function selectOption(qIdx, optIdx) {
+      if (isSubmitted) return;
+      userAnswers[qIdx] = optIdx;
+
+      // Card border
+      const card = document.getElementById(`q-${qIdx}`);
+      card.classList.add('answered');
+
+      // Update options styling
+      for (let i = 0; i < 5; i++) {
+        const lbl = document.getElementById(`opt-label-${qIdx}-${i}`);
+        if (lbl) {
+          if (i === optIdx) {
+            lbl.classList.add('selected');
+          } else {
+            lbl.classList.remove('selected');
+          }
+        }
+      }
+
+      // Update palette button
+      const pBtn = document.getElementById(`palette-${qIdx}`);
+      if (pBtn) pBtn.classList.add('answered');
+
+      // Update counter
+      const totalAnswered = Object.keys(userAnswers).length;
+      document.getElementById('answeredCount').innerText = `Terjawab: ${totalAnswered} / 100`;
+    }
+
+    function filterCategory(cat) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const cards = document.querySelectorAll('.question-card');
+      cards.forEach(c => {
+        if (cat === 'ALL' || c.classList.contains(`q-cat-${cat}`)) {
+          c.style.display = 'block';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+    }
+
+    function submitExam() {
+      if (isSubmitted) {
+        document.getElementById('scoreModal').style.display = 'flex';
+        return;
+      }
+
+      const totalAnswered = Object.keys(userAnswers).length;
+      if (totalAnswered < 100) {
+        const confirmSubmit = confirm(`Anda baru menyelesaikan ${totalAnswered} dari 100 soal. Apakah yakin ingin mengakhiri sesi ujian?`);
+        if (!confirmSubmit) return;
+      }
+
+      isSubmitted = true;
+      clearInterval(timerInterval);
+
+      // Disable inputs
+      const radios = document.querySelectorAll('input[type="radio"]');
+      radios.forEach(r => r.disabled = true);
+
+      // Calculate score & category breakdown
+      let score = 0;
+      const breakdown = {
+        TWK: { total: 30, correct: 0 },
+        TKT: { total: 25, correct: 0 },
+        TSI: { total: 30, correct: 0 },
+        TKP: { total: 15, correct: 0 }
+      };
+
+      currentQuestions.forEach((q, idx) => {
+        const userAns = userAnswers[idx];
+        const isCorrect = userAns === q.answer;
+        const pBtn = document.getElementById(`palette-${idx}`);
+        const expBox = document.getElementById(`explanation-${idx}`);
+
+        if (isCorrect) {
+          score++;
+          breakdown[q.category].correct++;
+          if (pBtn) pBtn.classList.add('correct');
+        } else {
+          if (pBtn) pBtn.classList.add('wrong');
+        }
+
+        // Highlight correct and wrong answers
+        for (let i = 0; i < 5; i++) {
+          const lbl = document.getElementById(`opt-label-${idx}-${i}`);
+          if (lbl) {
+            if (i === q.answer) {
+              lbl.classList.add('correct');
+            } else if (userAns === i) {
+              lbl.classList.add('wrong');
+            }
+          }
+        }
+
+        // Display explanation
+        expBox.classList.add('show');
+      });
+
+      // Populate Modal
+      document.getElementById('finalScore').innerText = score;
+
+      const statusEl = document.getElementById('passingStatus');
+      if (score >= 70) {
+        statusEl.innerHTML = '<span style="color: var(--success);">SELAMAT! MEMENUHI PASSING GRADE (LULUS)</span>';
+      } else {
+        statusEl.innerHTML = '<span style="color: var(--danger);">BELUM MEMENUHI PASSING GRADE (MIN. 70 POIN)</span>';
+      }
+
+      const breakdownBody = document.getElementById('breakdownBody');
+      breakdownBody.innerHTML = '';
+      for (const [cat, data] of Object.entries(breakdown)) {
+        const percentage = ((data.correct / data.total) * 100).toFixed(1);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${cat}</strong></td>
+          <td>${data.total}</td>
+          <td><span style="color: ${data.correct >= (data.total * 0.7) ? 'var(--success)' : 'var(--danger)'}; font-weight:700;">${data.correct}</span></td>
+          <td><strong>${percentage}%</strong></td>
+        `;
+        breakdownBody.appendChild(tr);
+      }
+
+      document.getElementById('scoreModal').style.display = 'flex';
+    }
+
+    function closeModalAndReview() {
+      document.getElementById('scoreModal').style.display = 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Auto initialize exam on load
+    window.onload = () => {
+      generateNewExam();
+    };
+  </script>
+</body>
+</html>
